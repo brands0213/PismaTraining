@@ -1,0 +1,52 @@
+Prisma Schema Definitions
+
+you can create a schema definitions or data model in schema.prisma file
+
+We'll create a simple application with just a user with id and username and a post just like on facebook but simpler
+
+username table : id and username
+user post / Post table : id, title, post, created at, updated at, and user id
+
+first we need to use model and then define the name of the table 
+
+// model (table name) {
+
+  | column | associated types |
+
+}
+
+
+Prisma Migrations 
+- use this CLI command to migrate 
+// npx prisma migrate dev --name init
+-it creates a new sql migration file for the contents or details of the migration
+-it will look out to the schema.prisma file and then translate it to our database
+
+
+Prisma Introspection
+if you want your prisma schema to relate to the database you will have to run this command 
+
+use this command
+
+//npx prisma introspect --force or for newer version we use
+//npx prisma db pull
+
+
+
+Prisma Data Relation
+
+Prisma studio
+-for better viewing of your data
+// npx prisma studio
+you can also add a record on a table selected 
+
+
+Prisma Client 
+
+we need to install prisma client to enable the CRUD operations 
+
+//npm install @prisma/client
+
+see the details and worflow to better understand the client 
+
+after creating or installing the prisma client you can start creating your API 
