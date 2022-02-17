@@ -1,6 +1,5 @@
 const router = require("express").Router()
 const { PrismaClient } = require("@prisma/client")
-const { request } = require("express")
 const { body, validationResult } = require('express-validator')
 
 const { user } = new PrismaClient()
@@ -28,11 +27,11 @@ router.get('/', async (req, res) => {
 
 router.post('/', 
     // Validation
-    body('email').isEmail().normalizeEmail(),
+    body('email', 'Email is not Valid').isEmail().normalizeEmail(),
     
-    body('name').isLength({min: 6}),
+    body('name', 'Name must contain atleast 6 Characters').isLength({min: 6}),
 
-    body('phone').isNumeric(11)
+    body('phone', 'Please provide valid number').isNumeric().isLength(11)
 , 
 
 async (req, res) => {
@@ -104,7 +103,8 @@ router.patch('/:id', async (req, res) => {
     })
 
     res.status(200).json({
-        msg: "User updated"
+        msg: "User updated",
+        updateUser
     })
 
 })
@@ -126,7 +126,7 @@ router.delete('/:id', async (req, res) => {
         }
      })
  
-     // If the user Already Exist 
+     // If there's no user to be deleted 
      if(!userExists){
         return res.status(400).json({
             msg: "User Doesn't Exist"
