@@ -1,5 +1,7 @@
 const router = require("express").Router()
 const { PrismaClient } = require("@prisma/client")
+const { request } = require("express")
+const { body, validationResult } = require('express-validator')
 
 const { user } = new PrismaClient()
 
@@ -7,11 +9,14 @@ const { user } = new PrismaClient()
 // Get all the users 
 // if you want to filter user use 'where' 
 router.get('/', async (req, res) => {
+
     const users = await user.findMany({
-        select:{
+        select:{ 
+            id:true,
             email: true,
             name: true,
-            post: true
+            phone: true,
+            posts: true
         }
     })
     res.json(users)
@@ -21,66 +26,116 @@ router.get('/', async (req, res) => {
 // CREATE 
 // Create a new user using an email
 
-router.post('/', async (req, res) => {
-   const { email, name } = req.body;
+router.post('/', 
+    // Validation
+    body('email').isEmail().normalizeEmail(),
+    
+    body('name').isLength({min: 6}),
 
-   const userExists = await user.findUnique({
+    body('phone').isNumeric(11)
+, 
+
+async (req, res) => {
+
+
+    // For sending the error
+    const errors  = validationResult(req)
+
+    if(!errors.isEmpty()){
+        return res.status(400).json({
+            errors: errors.array() 
+        })
+    }
+
+
+    // Checking if the email exist and Creating a new user
+    const { email, name, phone } = req.body;
+
+    const userExists = await user.findUnique({
        select:{
             email: true
        },
        where:{
-           email: email,
-           name
-       }
-   })
+           email
 
-   if(userExists){
+       }
+    })
+
+    // If the user Already Exist 
+    if(userExists){
        return res.status(400).json({
            msg: "email already exists"
        })
-   }
+    } 
 
-   const newUser = await user.create({
+    // Creating the User
+    const newUser = await user.create({
        data:{
            email,
-           name
+           name,
+           phone
        }
-   })
+    })
 
-   res.json(newUser)
+    // Registration successful
+   res.status(200).json({
+       msg: "Registration Successful"
+    })
+
 
 })
 
 // Update
 
-router.put('/', async (req, res) => {
+router.patch('/:id', async (req, res) => {
 
-    const { email, name } = req.body;
+    const { id } = req.params;
+    const { email, name, phone} = req.body
 
     const updateUser = await user.update({
     where: {
-      email
+      id: Number(id)
     },
     data: {
-      name
+      email,
+      name,
+      phone
     }
     })
 
-    res.json(updateUser)
+    res.status(200).json({
+        msg: "User updated"
+    })
 
 })
 
 // Delete
 
-router.delete('/', async (req, res) => {
-    const { email } = req.body;
+router.delete('/:id', async (req, res) => {
+
+    const { id } = req.params;
+
+
+    const userExists = await user.findUnique({
+        select:{
+             id: true
+        },
+        where:{
+            id : Number(id)
+ 
+        }
+     })
+ 
+     // If the user Already Exist 
+     if(!userExists){
+        return res.status(400).json({
+            msg: "User Doesn't Exist"
+        })
+     } 
 
     const deleteUser = await user.delete({
-    select: {
-      email: true
-    },
     where: {
-        email
+        id: Number(id)
     }
     })
 
